@@ -2,80 +2,53 @@ namespace Tennis
 {
     public class TennisGame1 : ITennisGame
     {
-        private int m_score1 = 0;
-        private int m_score2 = 0;
-        private string player1Name;
-        private string player2Name;
+        private Player player1;
+        private Player player2;
+        private ScoreDecider scoreDecider;
 
         public TennisGame1(string player1Name, string player2Name)
         {
-            this.player1Name = player1Name;
-            this.player2Name = player2Name;
+            this.player1 =  new Player(player1Name);
+            this.player2 = new Player(player2Name);
+            this.scoreDecider = new ScoreDecider(player1, player2);
         }
 
         public void WonPoint(string playerName)
         {
-            if (playerName == "player1")
-                m_score1 += 1;
-            else
-                m_score2 += 1;
+            if (playerName == this.player1.GetPlayerName()) this.player1.AddPoint();
+            if (playerName == this.player2.GetPlayerName()) this.player2.AddPoint();
         }
-
         public string GetScore()
         {
-            string score = "";
-            var tempScore = 0;
-            if (m_score1 == m_score2)
-            {
-                switch (m_score1)
-                {
-                    case 0:
-                        score = "Love-All";
-                        break;
-                    case 1:
-                        score = "Fifteen-All";
-                        break;
-                    case 2:
-                        score = "Thirty-All";
-                        break;
-                    default:
-                        score = "Deuce";
-                        break;
+            var score = this.scoreDecider.GetScore();
+            var scoreText = score.AsText();
+            
+            if (GameHasBeenWon(score)) CompleteGame();
 
-                }
-            }
-            else if (m_score1 >= 4 || m_score2 >= 4)
-            {
-                var minusResult = m_score1 - m_score2;
-                if (minusResult == 1) score = "Advantage player1";
-                else if (minusResult == -1) score = "Advantage player2";
-                else if (minusResult >= 2) score = "Win for player1";
-                else score = "Win for player2";
-            }
-            else
-            {
-                for (var i = 1; i < 3; i++)
-                {
-                    if (i == 1) tempScore = m_score1;
-                    else { score += "-"; tempScore = m_score2; }
-                    switch (tempScore)
-                    {
-                        case 0:
-                            score += "Love";
-                            break;
-                        case 1:
-                            score += "Fifteen";
-                            break;
-                        case 2:
-                            score += "Thirty";
-                            break;
-                        case 3:
-                            score += "Forty";
-                            break;
-                    }
-                }
-            }
-            return score;
+            return scoreText;
+        }
+
+        private bool GameHasBeenWon(Score score)
+        {
+            return typeof(WonScore) == score.GetType();
+        }
+        private void CompleteGame()
+        {
+            if (this.player1.HasWon(this.player2)) this.player1.AddGameWin();
+            if (this.player2.HasWon(this.player1)) this.player2.AddGameWin();
+
+            this.player1.ResetPoints();
+            this.player2.ResetPoints();
+        }
+
+        public int GetPlayer1Wins()
+        {
+            return this.player1.GetGameWins();
+        }
+        
+        public int GetPlayer2Wins()
+        {
+            return this.player2.GetGameWins();
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Tennis.Tests
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
-
+    
     public class TennisTests
     {
         [Theory]
@@ -58,7 +58,7 @@ namespace Tennis.Tests
             var game = new TennisGame1("player1", "player2");
             CheckAllScores(game, p1, p2, expected);
         }
-
+        
         [Theory]
         [ClassData(typeof(TestDataGenerator))]
         public void Tennis2Test(int p1, int p2, string expected)
@@ -75,7 +75,41 @@ namespace Tennis.Tests
             CheckAllScores(game, p1, p2, expected);
         }
 
+        [Fact]
+        public void Tennis1GamesWonTest()
+        {
+            var game = new TennisGame1("player1", "player2");
+
+            PlayGame(game, 16, 14);
+            game.GetScore();
+            PlayGame(game, 16, 14);
+            game.GetScore();
+            PlayGame(game, 14, 16);
+            game.GetScore();
+            
+            Assert.Equal(2, game.GetPlayer1Wins());
+            Assert.Equal(1, game.GetPlayer2Wins());
+        }
+
+        [Fact]
+        public void Tennis1ScoreResetAfterWinTest()
+        {
+            var game = new TennisGame1("player1", "player2");
+
+            PlayGame(game, 16, 14);
+            game.GetScore();
+            Assert.Equal("Love-All", game.GetScore());
+        }
+
+        // TODO Add test for checking score is reset to love-all and remove that assert from above
+
         private void CheckAllScores(ITennisGame game, int player1Score, int player2Score, string expectedScore)
+        {
+            PlayGame(game, player1Score, player2Score);
+            Assert.Equal(expectedScore, game.GetScore());
+        }
+
+        private static void PlayGame(ITennisGame game, int player1Score, int player2Score)
         {
             var highestScore = Math.Max(player1Score, player2Score);
             for (var i = 0; i < highestScore; i++)
@@ -85,8 +119,6 @@ namespace Tennis.Tests
                 if (i < player2Score)
                     game.WonPoint("player2");
             }
-
-            Assert.Equal(expectedScore, game.GetScore());
         }
     }
 }
